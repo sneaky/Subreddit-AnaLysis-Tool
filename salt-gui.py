@@ -12,50 +12,53 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationTool
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 
+import matplotlib
+
 import numpy as np
 
-total = 0
-negCount = 0
-neuCount = 0 
+total = 100
 posCount = 0
-
+neuCount = 0
+negCount = 0
 
 # functions
 def getSubreddit_analysis():
     # get subreddit from entry box
     s = entry.get()
-    os.system("python3 ./urs/Urs.py -r " + s + " h 100 -y")
+    os.system("python3 ./URS/urs/Urs.py -r " + s + " h 100 -y")
 
     # move to json dir
-    path_to_json = '~Programming/Subreddit-AnaLysis-Tool/URS/scrapes/' + datetime.today().strftime('%m-%d-%Y') + '/subreddits/'
+    #path_to_json = '/Programming/Subreddit-AnaLysis-Tool/URS/scrapes/' + datetime.today().strftime('%m-%d-%Y') + '/subreddits/'
+    #path_to_json = '/URS/scrapes/' + datetime.today().strftime('%m-%d-%Y') + '/subreddits/'
 
-    global total
-    global posCount
-    global neuCount
-    global negCount
+    path_to_json = '/URS/scrapes/' + '06-28-2021' + '/subreddits/'
 
-    for filename in glob.glob(path_to_json + '*.json'):
+
+    os.chdir(os.getcwd() + path_to_json)
+    #os.chdir(path_to_json)
+
+    for filename in glob.glob('*.json'):
         with open(filename) as f:
             posts = json.load(f)
 
         for post in posts['data']:
             sentence = post['selftext']
-            #global total
+            global total
             total = total + 1
 
             analyzer = SentimentIntensityAnalyzer()
             sentiment_dict = analyzer.polarity_scores(sentence)
 
             if sentiment_dict['compound'] >= 0.05 :
-                #global posCount
+                global posCount
                 posCount = posCount + 1
 
             elif sentiment_dict['compound'] <= -0.05 :
-                #global negCount
+                global negCount
                 negCount = negCount + 1
 
             else :
-                #global neuCount
+                global neuCount
                 neuCount = neuCount + 1
     
     # plot
@@ -66,19 +69,20 @@ def getSubreddit_analysis():
     fig = Figure(figsize = (5, 5), dpi = 100)
     ax = fig.add_subplot(111)
 
-    data = (negCount, neuCount, posCount)
+    names = ['negative', 'neutral', 'positive']
+    data = [negCount, neuCount, posCount]
 
     ind = np.arange(3) # x locations for bars
     width = .5
-
-    rects1 = ax.bar(ind, data, width)
-
+    
+    ax.bar(ind, data, width)
     canvas = FigureCanvasTkAgg(fig, master=window)
     canvas.draw()
     canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 window = tk.Tk()
-window.title('S.A.L.T. by Sean Kennedy')
+#window.title('S.A.L.T. by Sean Kennedy')
+window.title(os.getcwd())
 window.geometry("500x500")
 
 # entry box
